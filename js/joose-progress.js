@@ -23,6 +23,9 @@ joose.progress = (function(js) {
         // get further details of the progress instance
         this.direction = this.container.getAttribute('data-direction');
         this.continuous = this.container.getAttribute('data-continuous');
+        this.duration = this.container.getAttribute('data-duration');
+        this.delayProgress = this.container.getAttribute('data-delayed');
+        this.stopAt = this.container.getAttribute('data-stop-at');
         this.description = this.container.getAttribute('data-description');
 
         // perform initial setup of the progress
@@ -32,6 +35,63 @@ joose.progress = (function(js) {
 
     // set common properties for progress
     progress.prototype = {
+
+        // show progress
+        showProgress: function() {
+
+            var stopAt = parseInt(this.stopAt);
+
+            // if is static progress, get and stop at % or seconds
+            if (!this.continuous && '' + stopAt !== 'NaN') {
+                
+                moveToProgress(stopAt);
+
+            // if continuous decide what is a complete state
+            } else {
+                
+                var completeValue;
+
+                switch (this.description) {
+                    case 'time':
+                        completeValue = this.duration;
+                        break;
+                    case 'percentage':
+                    default:
+                        completeValue = 100;
+                        break;
+                }
+
+                startContinousProgress(completeValue);
+
+            }
+        },
+
+        // move to a certain level of progression
+        moveToProgress: function(stopAt) {
+
+            // incrementally adjust visual progress
+
+        },
+
+        // set a continous loop for the progress instance
+        startContinousProgress: function(completeValue) {
+
+            var progressInstance = this;
+
+            // progress to 100% of the complete value
+            moveToProgress(completeValue);
+
+            // repeat the delayed progress
+            progressInstance.continuousProgressTimeout = setTimeout(function() {
+                progressInstance.startContinuousProgress(completeValue);
+            }, progressInstance.duration);
+
+        },
+
+        // stop progress
+        stopContinuousProgress: function() {
+            clearTimeout(this.continuousProgressTimeout);
+        },
 
         // initialise the progress instance
         init: function() {
@@ -49,13 +109,13 @@ joose.progress = (function(js) {
             if (this.description !== 'percentage' && this.description !== 'time') {
                 this.description = 'percentage';
             }
+            (this.delayProgress === 'true') ? true : false;
 
-            // get the progress to show value if not continuous
-            if (!this.continuous && description === 'percentage') {
-                // get and stop at %
-            } else {
-                // continuous e.g. timer
-            }
+            // set default time to 5 seconds also converting to milliseconds
+            this.duration = ('' + parseInt(this.duration) !== 'NaN') ? this.duration * 1000 : 5000;
+
+            // if the start of the progress is not delayed, show progress
+            if (this.delayProgress) showProgress();
         }
     };
 
